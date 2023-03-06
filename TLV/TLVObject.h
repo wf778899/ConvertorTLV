@@ -3,8 +3,18 @@
 #include <string>
 #include <vector>
 
+class TLVTester;
+
 class TLVObject
 {
+    friend class TLVTester;
+
+    static const size_t  s_lenLimit = 0xFFFFFF;
+    static const uint8_t s_lenWidth_1Byte = 0x7F;
+    static const uint8_t s_lenWidth_2Byte = 0x81;
+    static const uint8_t s_lenWidth_3Byte = 0x82;
+    static const uint8_t s_lenWidth_4Byte = 0x83;
+
 public:
     // Predefined Tags for standard types
     enum class Tag : uint8_t {
@@ -42,18 +52,16 @@ public:
 
     bool Dump(const std::string& filePath);
 
-    void Clear();
+    void Clear()        { m_bytes.clear(); }
+
+    bool Empty() const  { return m_bytes.empty(); }
+
+    size_t Size() const { return m_bytes.size(); }
 
 private:
-    bool WriteLength(uint32_t length);
+    bool WriteLength(size_t length);
 
-    static const uint32_t s_lenLimit = 0xFFFFFF;
-    static const uint8_t  s_lenWidth_1Byte = 0x7F;
-    static const uint8_t  s_lenWidth_2Byte = 0x81;
-    static const uint8_t  s_lenWidth_3Byte = 0x82;
-    static const uint8_t  s_lenWidth_4Byte = 0x83;
-
-    std::vector<char> m_bytes;
+    std::vector<uint8_t> m_bytes;
 };
 
 
@@ -67,20 +75,20 @@ bool TLVObject::WriteInteger(T val)
 
     Tag tag;
     switch (length) {
-        case 1:  tag = isSigned ? Tag::Integer_S8 : Tag::Integer_U8;  break;
+        case 1:  tag = isSigned ? Tag::Integer_S8 :  Tag::Integer_U8;  break;
         case 2:  tag = isSigned ? Tag::Integer_S16 : Tag::Integer_U16; break;
         case 4:  tag = isSigned ? Tag::Integer_S32 : Tag::Integer_U32; break;
         case 8:  tag = isSigned ? Tag::Integer_S64 : Tag::Integer_U64; break;
         default:
             return false;
     }
-    m_bytes.push_back(static_cast<char>(tag));          // Such a tag represents both the type and length - so next field is a value
+    m_bytes.push_back(static_cast<uint8_t>(tag));         // Such a tag represents both the type and length - so next field is a value
 
-    // Big Endian is used to represent integers, e.g. for value '0xA58F2301' the octet will be written first is 'A5'
+    // Big Endian is used to represent integers, e.g. for value '0xA58F2301' the 1st octet will be written is 'A5'
     for (uint8_t i = 1; i <= length; ++i)
     {
         uint8_t shift = 8 * (length - i);
-        char byte = 0xFF & (val >> shift);
+        uint8_t byte = 0xFF & (val >> shift);
         m_bytes.push_back(byte);
     }
     return true;

@@ -6,7 +6,6 @@
 
 #include "TLVObject.h"
 
-
 using namespace nlohmann::detail;
 using namespace nlohmann;
 
