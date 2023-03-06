@@ -82,17 +82,11 @@ bool TLVObject::Dump(const std::string& filePath)
     std::ofstream out(filePath, std::ios::binary | std::ios::out);
 
     if (!out.is_open()) {
-        std::cout << "Unable to open the file for record" << std::endl;
+        std::cout << "Unable to open the file for record: " << filePath << std::endl;
         return false;
     }
 
     std::copy(m_bytes.begin(), m_bytes.end(), std::ostream_iterator<uint8_t>(out));
     out.close();
-
-    std::ifstream in(filePath, std::ios::binary | std::ios::in);
-    std::vector<uint8_t> vec;
-    std::copy(std::istreambuf_iterator<char>(in), {}, std::back_inserter(vec));
-    in.close();
-
     return true;
 }

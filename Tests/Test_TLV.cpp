@@ -1,6 +1,9 @@
-#include "TLVObject.h"
-#include <fstream>
+#include <TLV/TLVObject.h>
+#include <JsonToTLV/Utils.h>
 #include <gtest/gtest.h>
+
+#include <fstream>
+
 
 // Friendly fixture for access to TLVObject's private fields
 class TLVTester : public ::testing::Test
@@ -311,7 +314,7 @@ TEST_F(TLVTester, DumpCheck)
     EXPECT_TRUE(tlv1.Dump("binary"));
 
     std::ifstream in("binary", std::ios::binary | std::ios::in);
-    EXPECT_TRUE(in.is_open());
+    ASSERT_TRUE(in.is_open());
 
     Bytes expected;
     std::copy(std::istreambuf_iterator<char>(in), {}, std::back_inserter(expected));
@@ -319,4 +322,147 @@ TEST_F(TLVTester, DumpCheck)
     std::remove("binary");
 
     EXPECT_EQ(Tlv1Bytes(), expected);
+}
+
+// Check Records and Dictionary for JSON with 8bit integers converted to TLV
+TEST(ConvertionJsonToTLV, JsonWith8bitIntegers)
+{
+    std::string jsonStr = "{\"i8_min\" :-128, \"i8_any\" :-15, \"u8_any\" :74, \"u8_max\" :255}";
+    std::string recordFileName = "record";
+    std::string dictFileName = "dictionary";
+
+    EXPECT_TRUE(ConvertToTLV(jsonStr, recordFileName, dictFileName));
+    std::vector<uint8_t> record, dict, expected;
+
+    std::ifstream in(recordFileName, std::ios::binary | std::ios::in);
+    ASSERT_TRUE(in.is_open());
+    std::copy(std::istreambuf_iterator<char>(in), {}, std::back_inserter(record));
+    in.close();
+    std::remove(recordFileName.c_str());
+
+    expected = {0x07,0x01,0x03,0xF1,  0x07,0x02,0x03,0x80,  0x07,0x03,0x07,0x4A,  0x07,0x04,0x07,0xFF};
+    EXPECT_EQ(record, expected);
+
+    in.open(dictFileName, std::ios::binary | std::ios::in);
+    ASSERT_TRUE(in.is_open());
+    std::copy(std::istreambuf_iterator<char>(in), {}, std::back_inserter(dict));
+    in.close();
+    std::remove(dictFileName.c_str());
+
+    expected = {0x0B,0x06, 0x75,0x38,0x5F,0x6D,0x61,0x78, 0x07,0x04,  0x0B,0x06, 0x69,0x38,0x5F,0x61,0x6E,0x79, 0x07,0x01,
+                0x0B,0x06, 0x69,0x38,0x5F,0x6D,0x69,0x6E, 0x07,0x02,  0x0B,0x06, 0x75,0x38,0x5F,0x61,0x6E,0x79, 0x07,0x03};
+    EXPECT_EQ(dict, expected);
+}
+
+TEST(ConvertionJsonToTLV, JsonWith16bitIntegers)
+{
+    std::string jsonStr = "{\"i16_min\":-32768, \"i16_any\":-16752, \"u16_any\":35864, \"u16_max\":65535}";
+    std::string recordFileName = "record";
+    std::string dictFileName = "dictionary";
+
+    EXPECT_TRUE(ConvertToTLV(jsonStr, recordFileName, dictFileName));
+    std::vector<uint8_t> record, dict, expected;
+
+    std::ifstream in(recordFileName, std::ios::binary | std::ios::in);
+    ASSERT_TRUE(in.is_open());
+    std::copy(std::istreambuf_iterator<char>(in), {}, std::back_inserter(record));
+    in.close();
+    std::remove(recordFileName.c_str());
+
+    expected = { 0x07,0x01,0x04,0xBE,0x90,  0x07,0x02,0x04,0x80,0x00,  0x07,0x03,0x08,0x8C,0x18,  0x07,0x04,0x08,0xFF,0xFF };
+    EXPECT_EQ(record, expected);
+
+    in.open(dictFileName, std::ios::binary | std::ios::in);
+    ASSERT_TRUE(in.is_open());
+    std::copy(std::istreambuf_iterator<char>(in), {}, std::back_inserter(dict));
+    in.close();
+    std::remove(dictFileName.c_str());
+    expected = { 0x0B,0x07, 0x75,0x31,0x36,0x5F,0x6D,0x61,0x78, 0x07,0x04,  0x0B,0x07, 0x69,0x31,0x36,0x5F,0x61,0x6E,0x79, 0x07,0x01,
+                 0x0B,0x07, 0x69,0x31,0x36,0x5F,0x6D,0x69,0x6E, 0x07,0x02,  0x0B,0x07, 0x75,0x31,0x36,0x5F,0x61,0x6E,0x79, 0x07,0x03 };
+    EXPECT_EQ(dict, expected);
+}
+
+TEST(ConvertionJsonToTLV, JsonWith32bitIntegers)
+{
+    std::string jsonStr = "{\"i32_min\":-2147483648, \"i32_any\":-147633681, \"u32_any\":2769364793, \"u32_max\":4294967295}";
+    std::string recordFileName = "record";
+    std::string dictFileName = "dictionary";
+
+    EXPECT_TRUE(ConvertToTLV(jsonStr, recordFileName, dictFileName));
+    std::vector<uint8_t> record, dict, expected;
+
+    std::ifstream in(recordFileName, std::ios::binary | std::ios::in);
+    ASSERT_TRUE(in.is_open());
+    std::copy(std::istreambuf_iterator<char>(in), {}, std::back_inserter(record));
+    in.close();
+    std::remove(recordFileName.c_str());
+
+    expected = { 0x07,0x01,0x05,0xF7,0x33,0x49,0xEF,  0x07,0x02,0x05,0x80,0x00,0x00,0x00,
+                 0x07,0x03,0x09,0xA5,0x11,0x27,0x39,  0x07,0x04,0x09,0xFF,0xFF,0xFF,0xFF, };
+    EXPECT_EQ(record, expected);
+
+    in.open(dictFileName, std::ios::binary | std::ios::in);
+    ASSERT_TRUE(in.is_open());
+    std::copy(std::istreambuf_iterator<char>(in), {}, std::back_inserter(dict));
+    in.close();
+    std::remove(dictFileName.c_str());
+    expected = { 0x0B,0x07, 0x69,0x33,0x32,0x5F,0x61,0x6E,0x79, 0x07,0x01,  0x0B,0x07, 0x69,0x33,0x32,0x5F,0x6D,0x69,0x6E, 0x07,0x02,
+                 0x0B,0x07, 0x75,0x33,0x32,0x5F,0x6D,0x61,0x78, 0x07,0x04,  0x0B,0x07, 0x75,0x33,0x32,0x5F,0x61,0x6E,0x79, 0x07,0x03 };
+    EXPECT_EQ(dict, expected);
+}
+
+TEST(ConvertionJsonToTLV, JsonWith64bitIntegers)
+{
+    std::string jsonStr = "{\"i64_min\":-9223372036854775808,\"i64_any\":-223300436883615895,\"u64_any\":9663751073709473064,\"u64_max\":18446744073709551615}";
+    std::string recordFileName = "record";
+    std::string dictFileName = "dictionary";
+
+    EXPECT_TRUE(ConvertToTLV(jsonStr, recordFileName, dictFileName));
+    std::vector<uint8_t> record, dict, expected;
+
+    std::ifstream in(recordFileName, std::ios::binary | std::ios::in);
+    ASSERT_TRUE(in.is_open());
+    std::copy(std::istreambuf_iterator<char>(in), {}, std::back_inserter(record));
+    in.close();
+    std::remove(recordFileName.c_str());
+
+    expected = { 0x07,0x01,0x06,0xFC,0xE6,0xAD,0x6F,0x8D,0x5C,0xCF,0x69,  0x07,0x02,0x06,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+                 0x07,0x03,0x0A,0x86,0x1C,0x8A,0x66,0x9A,0x40,0xBD,0x28,  0x07,0x04,0x0A,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF};
+    EXPECT_EQ(record, expected);
+
+    in.open(dictFileName, std::ios::binary | std::ios::in);
+    ASSERT_TRUE(in.is_open());
+    std::copy(std::istreambuf_iterator<char>(in), {}, std::back_inserter(dict));
+    in.close();
+    std::remove(dictFileName.c_str());
+    expected = { 0x0B,0x07, 0x69,0x36,0x34,0x5F,0x61,0x6E,0x79, 0x07,0x01,  0x0B,0x07, 0x69,0x36,0x34,0x5F,0x6D,0x69,0x6E, 0x07,0x02,
+                 0x0B,0x07, 0x75,0x36,0x34,0x5F,0x6D,0x61,0x78, 0x07,0x04,  0x0B,0x07, 0x75,0x36,0x34,0x5F,0x61,0x6E,0x79, 0x07,0x03 };
+    EXPECT_EQ(dict, expected);
+}
+
+TEST(ConvertionJsonToTLV, JsonWithDifferentTypes)
+{
+    std::string jsonString = "{\"key1\":true,\"key2\":234,\"key3\":\"qwerty\"}";
+    std::string recordFileName = "record";
+    std::string dictFileName = "dictionary";
+
+    EXPECT_TRUE(ConvertToTLV(jsonString, recordFileName, dictFileName));
+    std::vector<uint8_t> record, dict, expected;
+
+    std::ifstream in(recordFileName, std::ios::binary | std::ios::in);
+    ASSERT_TRUE(in.is_open());
+    std::copy(std::istreambuf_iterator<char>(in), {}, std::back_inserter(record));
+    in.close();
+    std::remove(recordFileName.c_str());
+
+    expected = { 0x07,0x01,0x01,0x07,0x02,0x07,0xEA,0x07,0x03,0x0B,0x06,0x71,0x77,0x65,0x72,0x74,0x79 };
+    EXPECT_EQ(record, expected);
+
+    in.open(dictFileName, std::ios::binary | std::ios::in);
+    ASSERT_TRUE(in.is_open());
+    std::copy(std::istreambuf_iterator<char>(in), {}, std::back_inserter(dict));
+    in.close();
+    std::remove(dictFileName.c_str());
+    expected = { 0x0B,0x04,0x6B,0x65,0x79,0x31,0x07,0x01,0x0B,0x04,0x6B,0x65,0x79,0x32,0x07,0x02,0x0B,0x04,0x6B,0x65,0x79,0x33,0x07,0x03 };
+    EXPECT_EQ(dict, expected);
 }
