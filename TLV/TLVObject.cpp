@@ -15,39 +15,39 @@ TLVObject::TLVObject(TLVObject&& src) noexcept
     : m_bytes(std::move(src.m_bytes))
 {}
 
-
 TLVObject& TLVObject::operator=(TLVObject&& src) noexcept
 {
     m_bytes = std::move(src.m_bytes);
     return *this;
 }
 
-
+/*  Encodes the boolean val */
 bool TLVObject::WriteBool(bool val)
 {
-    m_bytes.push_back(static_cast<uint8_t>(val ? Tag::Bool_T : Tag::Bool_F));          // Tag (just tag - it's enough for boolean)
+    m_bytes.push_back(static_cast<uint8_t>(val ? Tag::Bool_T : Tag::Bool_F));         // Tag (just tag - it's enough for boolean)
     return true;
 }
 
-
+/*  Encodes the string str */
 bool TLVObject::WriteString(const std::string& str)
 {
-    m_bytes.push_back(static_cast<uint8_t>(Tag::String));
+    m_bytes.push_back(static_cast<uint8_t>(Tag::String));       // Put the Tag
 
     if (str.empty())
     {
-        m_bytes.push_back(0x00);
+        m_bytes.push_back(0x00);                                // If empty string - just put 0 to the Length
         return true;
     }
     if (!WriteLength(str.length()))
     {
         return false;
     }
-    m_bytes.insert(m_bytes.end(), str.begin(), str.end());
+    m_bytes.insert(m_bytes.end(), str.begin(), str.end());      // Put the Value
     return true;
 }
 
-
+/*  Separate method to write the 'Length'  field where it's necessary  (for strings, for example). Length is encoded by the rules
+ *  in the class description */
 bool TLVObject::WriteLength(size_t length)
 {
     if (length > s_lenLimit) {
@@ -83,7 +83,7 @@ bool TLVObject::WriteLength(size_t length)
     return true;
 }
 
-
+/*  Dumps to the file 'filePath' the binary data encoded with 'Write*' calls */
 bool TLVObject::Dump(const std::string& filePath)
 {
     std::ofstream out(filePath, std::ios::binary | std::ios::out);

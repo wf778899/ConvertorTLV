@@ -23,6 +23,7 @@ public:
     const Bytes bytes { 'T','E','S','T' };  // Emm... bytes!
 };
 
+// Fixture for JSON to TLV convertion test
 class ConvertionTester : public testing::Test
 {
 public:
@@ -336,7 +337,7 @@ TEST_F(TLVTester, DumpCheck)
 }
 
 
-// Check Records and Dictionary for JSON with 8bit integers converted to TLV
+// Check Records and Dictionary for JSON with integers converted to TLV
 TEST_F(ConvertionTester, ConvertIntegers)
 {
     std::vector<std::string> jsonStrings = {

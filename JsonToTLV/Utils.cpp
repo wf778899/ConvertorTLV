@@ -8,12 +8,19 @@
 using namespace nlohmann::detail;
 using namespace nlohmann;
 
+
+/*  Converts one JSON line to appropriate binaries
+ *
+ *  'jsonString'        - valid JSON string
+ *  'recordFileName'    - filepath the binary record will be generated to
+ *  'dictFileName'      - filepath the binary dictionary will be generated to
+ *_____________________________________________________________________________________________________________________________*/
 bool ConvertToTLV(const std::string& jsonString, const std::string& recordFileName, const std::string& dictFileName)
 {
-    std::unordered_map<std::string, uint8_t> dict;      // {"key1":1, "qwe":2, "keyEE":3...}
+    std::unordered_map<std::string, uint8_t> dict;  // {"key1":1, "qwe":2, "keyEE":3...}
     TLVObject tlv_dict, tlv_record;
     json j;
-    uint8_t k = 1;                                      // This is to distinguish the keys inside one record (1:"qqq", 2:true, 3...)
+    uint8_t k = 1;                                   // This is to distinguish the keys inside one record (1:"qqq", 2:true, 3...)
     bool ok = true;
 
     try {
