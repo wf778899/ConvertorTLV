@@ -2,7 +2,14 @@
 
 #include <fstream>
 #include <iostream>
+#include <iterator>
 
+
+const size_t  TLVObject::s_lenLimit = 0xFFFFFF;
+const uint8_t TLVObject::s_lenWidth_1Byte = 0x7F;
+const uint8_t TLVObject::s_lenWidth_2Byte = 0x81;
+const uint8_t TLVObject::s_lenWidth_3Byte = 0x82;
+const uint8_t TLVObject::s_lenWidth_4Byte = 0x83;
 
 TLVObject::TLVObject(TLVObject&& src) noexcept
     : m_bytes(std::move(src.m_bytes))

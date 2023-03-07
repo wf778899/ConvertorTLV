@@ -9,11 +9,11 @@ class TLVObject
 {
     friend class TLVTester;
 
-    static const size_t  s_lenLimit = 0xFFFFFF;
-    static const uint8_t s_lenWidth_1Byte = 0x7F;
-    static const uint8_t s_lenWidth_2Byte = 0x81;
-    static const uint8_t s_lenWidth_3Byte = 0x82;
-    static const uint8_t s_lenWidth_4Byte = 0x83;
+    static const size_t  s_lenLimit;
+    static const uint8_t s_lenWidth_1Byte;
+    static const uint8_t s_lenWidth_2Byte;
+    static const uint8_t s_lenWidth_3Byte;
+    static const uint8_t s_lenWidth_4Byte;
 
 public:
     // Predefined Tags for standard types
@@ -68,9 +68,9 @@ private:
 template<class T>
 bool TLVObject::WriteInteger(T val)
 {
-    static_assert(std::is_integral_v<T> && "Supposed to be used with an integer types");
+    static_assert(std::is_integral<T>::value && "Supposed to be used with an integer types");
 
-    constexpr bool isSigned = std::is_signed_v<T>;
+    constexpr bool isSigned = std::is_signed<T>::value;
     constexpr uint8_t length = sizeof(T);
 
     Tag tag;
