@@ -1,3 +1,7 @@
+Built and tested on:
+	Windows10, CMake3.24.1, VisualStudio2022
+	Debian10, CMake3.22.2, g++ 8.3.0
+---------------------------------------------------------------------------------------------------
 Converts the JSON 1-line string to TLV records and dictionaries.
 For example given JSON:
 
